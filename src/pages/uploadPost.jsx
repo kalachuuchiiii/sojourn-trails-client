@@ -1,0 +1,173 @@
+import { useSelector } from 'react-redux';
+import { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
+import { AnimatePresence } from 'framer-motion';
+import { TbPhotoShare } from "react-icons/tb";
+import { MdOutlineVideoLibrary } from "react-icons/md";
+import { MoonLoader } from 'react-spinners';
+import Placeholder from '../components/placeholder.jsx';
+import NAPopUp from '../components/notAuthorizedPopup.jsx';
+import Slider from '../components/slider.jsx';
+import UserIcon from '../components/userIcon.jsx';
+import ErrorPopUp from '../components/errorPopUp.jsx';
+
+
+const UploadPost = ({ isSessionLookingDone }) => {
+  const { user, authenticated } = useSelector(state => state.user);
+  const [fileUrls, setFileUrls] = useState([]);
+
+  const [postDesc, setPostDesc] = useState('');
+  const [isError, setIsError] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const textAreaRef = useRef(null);
+  const fileRef = useRef(null);
+  
+  const offErrorCd = () => {
+    setTimeout(() => {
+      setErrMsg('');
+    setIsError(false);
+    }, 3000)
+  }
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if(fileUrls.length === 0)return; 
+    if (fileUrls.length > 8) {
+      setErrMsg('You can only upload up to 8 files.')
+      setIsError(true);
+      offErrorCd();
+      return;
+    } 
+    
+    const format = {
+      files: fileUrls,
+      postDesc,
+      postOf: user._id,
+    }
+    
+    setLoading(true);
+    try{
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/upload-post`, { format })
+      console.log(res); 
+      setLoading(false);
+    }catch(e){
+      console.log(e); 
+      setErrMsg(e?.response?.data?.message || 'Internal Server Error'); 
+      setIsError(true);
+      offErrorCd();
+      setLoading(false);
+    }
+  }
+
+  const handleChange = (e) => {
+    if (e.target.value.length > 400) {
+      return;
+    }
+    setPostDesc(e.target.value);
+  }
+
+  const handleFileChange = (e) => {
+    const { files, name } = e.currentTarget;
+    if (files.length === 0) return;
+    if (files.length > 8) {
+      setErrMsg('You can only upload up to 8 files.')
+      setIsError(true);
+      offErrorCd();
+    } else {
+      const fileSizeLimit = 100; //MB 
+      const totalSizeInBytes = Array.from(files).reduce((total, file) => total += file.size, 0);
+      const totalSizeInMb = totalSizeInBytes / (1024 * 1024);
+      if (totalSizeInMb > fileSizeLimit) {
+        setErrMsg('File size exceeded 100MB limit.')
+        setIsError(true);
+        setTimeout(() => {
+          setIsError(false);
+          setErrMsg('');
+        }, 3000)
+        return;
+      }
+
+      const urls = Array.from(files).map((file) => {
+        return new Promise((res) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            res({
+              file: e.target.result,
+              type: file?.type.startsWith("video/") ? "video" : "image"
+            })
+          }
+          reader.onerror = () => {
+            setErrMsg('File not supported.');
+            setIsError(true);
+            offErrorCd();
+          }
+
+          reader.readAsDataURL(file);
+        })
+      })
+
+      Promise.all(urls).then((urlFiles) => {
+        setFileUrls(urlFiles);
+      })
+    }
+  }
+
+  useEffect(() => {
+    const descRef = textAreaRef.current;
+    if (!descRef) {
+      return;
+    }
+    descRef.style.height = "auto";
+    descRef.style.height = `${descRef.scrollHeight}px`;
+  }, [postDesc])
+
+
+  if ((!isSessionLookingDone && !authenticated)) {
+    return <Placeholder />
+  }
+
+  if (isSessionLookingDone && !authenticated) {
+    return <NAPopUp />
+  }
+
+  return <div className='grid gap-4'>
+    <AnimatePresence>
+      {
+        isError && <ErrorPopUp message={errMsg} />
+      }
+    </AnimatePresence>
+    <UserIcon info={user} />
+    <div className='w-full p-2 overflow-x-auto rounded outline'>
+      <div >
+        <textarea ref={textAreaRef} value={postDesc} onChange={handleChange} className='w-full z-20 hide-scrollbar p-2 min-h-[10vh] outline-none' placeholder='Write a description'></textarea>
+        <div className='w-full h-full flex justify-end items-end'>
+          <p className='text-xs text-neutral-400 '>{postDesc.length}/400</p>
+        </div>
+      </div>
+      <div className=' w-full  rounded-lg mb-2 overflow-x-auto'>
+        {
+          fileUrls.length === 0 ? <div className='flex w-full h-46 bg-neutral-100 justify-center items-center'> <button disabled={isError} onClick={() => fileRef?.current.click()}>Upload files</button></div> : <Slider files={fileUrls} />
+        }
+      </div>
+
+      <div className='w-full items-center justify-between p-2 flex rounded-lg bg-neutral-200'>
+        <p className='text-xs'>Max file size: 100MB</p>
+        <div className='flex flex-col  items-center gap-2'>
+          <input ref={fileRef} disabled={isError} onChange={handleFileChange} id="imageId" multiple className='hidden' type="file" name="image" accept="image/*video/*" />
+          <label className='active:scale-125 animation-transition gap-1 duration-200 flex  items-center' htmlFor="imageId" >                        <TbPhotoShare size="22" />
+
+            <MdOutlineVideoLibrary size="22" />
+          </label>
+        </div>
+
+      </div>
+      <div className='w-full flex justify-end'>
+        <button onClick={handleFormSubmit} className='bg-blue-400 rounded-lg p-2 my-2 text-white flex h-10  items-center justify-center w-5/12'>{loading ? <MoonLoader size = '20' color = "white" /> : 'Post'}</button>
+      </div>
+    </div>
+  </div>
+
+}
+
+export default UploadPost
