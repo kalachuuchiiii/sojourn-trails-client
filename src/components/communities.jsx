@@ -14,7 +14,7 @@ const Communities = () => {
   const getCommunities = async () => {
     try {
       const res = await axios.get(`https://dummyjson.com/users`);
-      console.log(res)
+      
       if (res?.data?.users?.length > 0) {
         setCommunities(res.data.users);
         setIsFetchedSuccess(true)

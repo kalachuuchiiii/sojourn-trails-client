@@ -9,7 +9,7 @@ import Placeholder from '../components/placeholder.jsx';
 import NAPopUp from '../components/notAuthorizedPopup.jsx';
 import Slider from '../components/slider.jsx';
 import UserIcon from '../components/userIcon.jsx';
-import ErrorPopUp from '../components/errorPopUp.jsx';
+import PopUp from '../components/popUp.jsx';
 
 
 const UploadPost = ({ isSessionLookingDone }) => {
@@ -20,23 +20,30 @@ const UploadPost = ({ isSessionLookingDone }) => {
   const [isError, setIsError] = useState(false);
   const [errMsg, setErrMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const textAreaRef = useRef(null);
   const fileRef = useRef(null);
   
-  const offErrorCd = () => {
+  const offPopUp = () => {
     setTimeout(() => {
       setErrMsg('');
+      setSuccess(false); 
     setIsError(false);
     }, 3000)
   }
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if(fileUrls.length === 0)return; 
+    if(fileUrls.length === 0){
+      setIsError(true); 
+      setErrMsg('Post cannot be empty');
+      offPopUp();
+      return;
+    }; 
     if (fileUrls.length > 8) {
       setErrMsg('You can only upload up to 8 files.')
       setIsError(true);
-      offErrorCd();
+      offPopUp();
       return;
     } 
     
@@ -49,14 +56,20 @@ const UploadPost = ({ isSessionLookingDone }) => {
     setLoading(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/upload-post`, { format })
-      console.log(res); 
+      
+      setSuccess(true);
       setLoading(false);
+      offPopUp()
+        window.location.href = `${import.meta.env.VITE_HOMEPAGE}`
+      
+      
     }catch(e){
       console.log(e); 
       setErrMsg(e?.response?.data?.message || 'Internal Server Error'); 
       setIsError(true);
-      offErrorCd();
+      setSuccess(false);
       setLoading(false);
+      offPopUp();
     }
   }
 
@@ -73,7 +86,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
     if (files.length > 8) {
       setErrMsg('You can only upload up to 8 files.')
       setIsError(true);
-      offErrorCd();
+      offPopUp();
     } else {
       const fileSizeLimit = 100; //MB 
       const totalSizeInBytes = Array.from(files).reduce((total, file) => total += file.size, 0);
@@ -100,7 +113,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
           reader.onerror = () => {
             setErrMsg('File not supported.');
             setIsError(true);
-            offErrorCd();
+            offPopUp();
           }
 
           reader.readAsDataURL(file);
@@ -134,7 +147,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
   return <div className='grid gap-4'>
     <AnimatePresence>
       {
-        isError && <ErrorPopUp message={errMsg} />
+        isError ? <PopUp message={errMsg} /> : loading ? <PopUp message = "Uploading..." /> : success && <PopUp message = "Upload Success!" />
       }
     </AnimatePresence>
     <UserIcon info={user} />
@@ -147,7 +160,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
       </div>
       <div className=' w-full  rounded-lg mb-2 overflow-x-auto'>
         {
-          fileUrls.length === 0 ? <div className='flex w-full h-46 bg-neutral-100 justify-center items-center'> <button disabled={isError} onClick={() => fileRef?.current.click()}>Upload files</button></div> : <Slider files={fileUrls} />
+          fileUrls.length === 0 ? <div className='flex w-full h-60 bg-neutral-100 justify-center items-center'> <button disabled={isError} onClick={() => fileRef?.current.click()}>Upload files</button></div> : <Slider files={fileUrls} />
         }
       </div>
 

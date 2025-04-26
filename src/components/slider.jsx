@@ -10,7 +10,7 @@ const Slider = ({files = []}) => {
   }, [files])
   
 
-return <div className = 'w-full z-10 bg-neutral-100 grid h-46'>
+return <div className = 'w-full rounded-lg overflow-hidden z-10 bg-neutral-100 grid h-60'>
   {
     files.length > 1 &&  <div className = 'w-full  h-full row-start-1 col-start-1 flex justify-between'>
     <div className = 'w-[20%]  h-full  flex flex-col justify-center items-center'>
@@ -31,7 +31,7 @@ return <div className = 'w-full z-10 bg-neutral-100 grid h-46'>
   </div>
   }
   {
-    files.length > 0 && <div className = 'w-full h-46 row-start-1 p-2   col-start-1'>
+    files.length > 0 && <div className = 'w-full h-60 row-start-1 p-2   col-start-1'>
     <PreviewFile fileInfo = {files[currentSlide]} />
   </div> 
   }
