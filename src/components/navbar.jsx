@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
 import axios from 'axios';
+import { NavLink } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import OptionSidebar from '../modals/optionSidebar.jsx';
 
@@ -18,7 +19,7 @@ return <div className = "z-40 bg-white shadow-md w-full p-5 md:p-8 flex justify-
     isOptionSidebarOpen && <OptionSidebar onClose = {() => setIsOptionSidebarOpen(false)} />
   }
   </AnimatePresence>
-  <p className = "text-lg md:text-2xl">Sojourn</p>
+  <NavLink to = "/"  className = "text-lg md:text-2xl">Sojourn</NavLink>
   <button onClick = {() => setIsOptionSidebarOpen(true)}>
       {authenticated && user.username || user?.nickname }
   </button>

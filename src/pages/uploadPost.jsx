@@ -9,6 +9,7 @@ import Placeholder from '../components/placeholder.jsx';
 import NAPopUp from '../components/notAuthorizedPopup.jsx';
 import Slider from '../components/slider.jsx';
 import UserIcon from '../components/userIcon.jsx';
+import StarRating from '../components/starRating.jsx';
 import PopUp from '../components/popUp.jsx';
 
 
@@ -21,6 +22,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
   const [errMsg, setErrMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [rate, setRate] = useState(1);
   const textAreaRef = useRef(null);
   const fileRef = useRef(null);
   
@@ -31,15 +33,23 @@ const UploadPost = ({ isSessionLookingDone }) => {
     setIsError(false);
     }, 3000)
   }
+  
+  
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if(fileUrls.length === 0){
+    if(fileUrls.length === 0 && postDesc.length === 0){
       setIsError(true); 
-      setErrMsg('Post cannot be empty');
+      setErrMsg('Describe your posts, and try to attach images or videos to make your post more engaging');
       offPopUp();
       return;
     }; 
+    if(postDesc.length < 5){
+      setIsError(true); 
+      setErrMsg('Describe your post');
+      offPopUp();
+      return;
+    }
     if (fileUrls.length > 8) {
       setErrMsg('You can only upload up to 8 files.')
       setIsError(true);
@@ -51,6 +61,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
       files: fileUrls,
       postDesc,
       postOf: user._id,
+      rate 
     }
     
     setLoading(true);
@@ -88,16 +99,13 @@ const UploadPost = ({ isSessionLookingDone }) => {
       setIsError(true);
       offPopUp();
     } else {
-      const fileSizeLimit = 100; //MB 
-      const totalSizeInBytes = Array.from(files).reduce((total, file) => total += file.size, 0);
-      const totalSizeInMb = totalSizeInBytes / (1024 * 1024);
-      if (totalSizeInMb > fileSizeLimit) {
-        setErrMsg('File size exceeded 100MB limit.')
+      const fileSizeLimit = 10; //MB 
+      const haveExceeded10MBLimit = Array.from(files).some(file => file.size >= fileSizeLimit * (1024*1024))
+      
+      if (haveExceeded10MBLimit) {
+        setErrMsg('File size exceeded 10MB limit.')
         setIsError(true);
-        setTimeout(() => {
-          setIsError(false);
-          setErrMsg('');
-        }, 3000)
+        offPopUp();
         return;
       }
 
@@ -150,7 +158,16 @@ const UploadPost = ({ isSessionLookingDone }) => {
         isError ? <PopUp message={errMsg} /> : loading ? <PopUp message = "Uploading..." /> : success && <PopUp message = "Upload Success!" />
       }
     </AnimatePresence>
-    <UserIcon info={user} />
+    <div className = ''>
+          <UserIcon info={user} />
+          <div className = 'text-xs bg-neutral-100 rounded-lg grid gap-1 p-3'>
+            <p >How would you rate this place?</p>
+            <div className = 'text-base'>
+                                    <StarRating viewOnly = {false} setRate = {setRate} rate = {rate}/>
+            </div>
+          </div>
+    </div>
+
     <div className='w-full p-2 overflow-x-auto rounded outline'>
       <div >
         <textarea ref={textAreaRef} value={postDesc} onChange={handleChange} className='w-full z-20 hide-scrollbar p-2 min-h-[10vh] outline-none' placeholder='Write a description'></textarea>
@@ -165,7 +182,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
       </div>
 
       <div className='w-full items-center justify-between p-2 flex rounded-lg bg-neutral-200'>
-        <p className='text-xs'>Max file size: 100MB</p>
+        <p className='text-xs'>Max file size: 10MB</p>
         <div className='flex flex-col  items-center gap-2'>
           <input ref={fileRef} disabled={isError} onChange={handleFileChange} id="imageId" multiple className='hidden' type="file" name="image" accept="image/*video/*" />
           <label className='active:scale-125 animation-transition gap-1 duration-200 flex  items-center' htmlFor="imageId" >                        <TbPhotoShare size="22" />
