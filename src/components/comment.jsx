@@ -4,9 +4,10 @@ import Comments from './comments.jsx'
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { GoPaperAirplane } from "react-icons/go";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 import PopUp from './popUp.jsx';
 
-const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, setCommentInfo}) => {
+const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, setReplies, setCommentInfo}) => {
   const { user } = useSelector(state => state.user);
   
   const [replyForm, setReplyForm] = useState({
@@ -25,7 +26,6 @@ const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, se
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-reply`, {
         ...replyForm
       })
-      console.log(res)
       setCommentInfo(prev => {
         return {
           ...prev, hasReplies: true
@@ -36,10 +36,11 @@ const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, se
           ...prev, text: ''
         }
       })
+      setReplies(prev => [res.data.newRep, ...prev])
       closeReply();
       setIsPostingReply(false);
     }catch(e){
-      console.log(e) 
+      
       setIsPostingReply(false);
     }
   }
@@ -63,7 +64,8 @@ const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, se
   </form>
 }
 
-const Comment = ({info, replyingTo, setReplyingTo}) => {
+const Comment = ({info, replyingTo, setReplyingTo, setIsProhibited}) => {
+  const { user, authenticated } = useSelector(state => state.user);
   const [authorInfo, setAuthorInfo] = useState(null)
   const [replies, setReplies] = useState([]);
   const [commentInfo, setCommentInfo] = useState(info)
@@ -84,9 +86,9 @@ const Comment = ({info, replyingTo, setReplyingTo}) => {
       }); 
       setReplies(res.data.replies)
       setIsGetReplyPending(false);
-      console.log(res)
+      
     }catch(e){
-      console.log('replies', e)
+      
       setIsGetReplyPending(false);
     }
   }
@@ -106,21 +108,64 @@ const Comment = ({info, replyingTo, setReplyingTo}) => {
     }
   }, [commentInfo])
   
+  const handleLike = async() => {
+    if(!authenticated){
+      setIsProhibited(true); 
+      return;
+    }
+    try{
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/like-comment`, {
+        userId: user._id, 
+        commentId: commentInfo._id
+      }); 
+      console.log(res)
+      setCommentInfo(prev => {
+        return {
+          ...prev, likes: [...prev.likes, user._id ]
+        }
+      })
+    }catch(e){
+      console.log(e)
+    }
+  }
+  const handleDislike = async() => {
+    if(!authenticated){
+      setIsProhibited(true); 
+      return;
+    }
+    try{
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike-comment`, {
+        userId: user._id, 
+        commentId: commentInfo._id
+      }); 
+      const likesExcludedUser = commentInfo.likes.filter(liker => liker !== user._id); 
+      setCommentInfo(prev => {
+        return {
+          ...prev, likes: likesExcludedUser
+        }
+      })
+    }catch(e){
+      console.log(e)
+    }
+  }
+  
   
   
 return <div className = 'p-1 bg-neutral-100 rounded-lg'>
   
-  <div className = ' p-2 rounded-lg bg-white'>
+  <div className = ' p-2 rounded-r-lg bg-white'>
     <UserIcon info = {authorInfo}/>
       <p>{commentInfo.text}</p>
   </div>
-  <div className = 'flex text-sm gap-4 p-1'>
-    <button>Like</button>
-    <button onClick = {() => setReplyingTo(prev => prev === commentInfo._id ? null : commentInfo._id)}>{replyingTo === commentInfo._id ? <p className = 'text-neutral-400'>Cancel Reply</p> : 'Reply'}</button>
+  <div className = 'flex text-sm gap-6 p-1'>
+    <button onClick = {commentInfo.likes.includes(user._id) ? handleDislike : handleLike} className = ' flex gap-1 text-red-400 items-center'>{commentInfo.likes.length}{
+      commentInfo.likes.includes(user._id) ? <FaHeart  size = "20" /> : <FaRegHeart size = "20"/>
+    }</button>
+    <button onClick = {!authenticated ? () => setIsProhibited(true): () => setReplyingTo(prev => prev === commentInfo._id ? null : commentInfo._id)}>{replyingTo === commentInfo._id ? <p className = 'text-neutral-400'>Cancel Reply</p> : 'Reply'}</button>
   </div>
   <div>
       {
-    replyingTo === commentInfo._id && <Form closeReply = {() => setReplyingTo(null)} setCommentInfo = {setCommentInfo} isTargetCommentHasReplies = {commentInfo.hasReplies} targetComment = {commentInfo._id} toPost = {commentInfo.toPost}/>
+    replyingTo === commentInfo._id && <Form closeReply = {() => setReplyingTo(null)} setCommentInfo = {setCommentInfo} isTargetCommentHasReplies = {commentInfo.hasReplies} targetComment = {commentInfo._id} toPost = {commentInfo.toPost} setReplies = {setReplies}/>
   }
   </div>
   <div>
@@ -130,8 +175,8 @@ return <div className = 'p-1 bg-neutral-100 rounded-lg'>
   </div>
   <div>
       {
-    isGetReplyPending ? <p>Loading replies...</p> : replies.length > 0 && isViewReplies && <div className = 'w-full ml-2'>
-      <Comments comments = {replies}/>
+    isGetReplyPending ? <p className = 'text-xs text-neutral-400'>Loading replies...</p> : replies.length > 0 && isViewReplies && <div className = 'w-full ml-2'>
+      <Comments setIsProhibited = {setIsProhibited} comments = {replies}/>
     </div>
   }
   </div>

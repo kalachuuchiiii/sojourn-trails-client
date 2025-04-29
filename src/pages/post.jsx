@@ -1,11 +1,13 @@
 import axios from 'axios';
 import { useState, useEffect, useRef } from 'react' 
+import { AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux'; 
 import { useParams } from 'react-router-dom';
 import Post from '../components/post.jsx';
 import { GoPaperAirplane } from "react-icons/go";
 import PopUp from '../components/popUp.jsx';
 import Comments from '../components/comments.jsx';
+import NAPopUp from '../components/notAuthorizedPopup.jsx';
 
 const PostPage = () => {
   const { postId } = useParams();
@@ -22,6 +24,7 @@ const PostPage = () => {
   const textareaRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [commentPage, setCommentPage] = useState(0);
+  const [isProhibited, setIsProhibited] = useState(false);
   
   const handleChange = (e) => {
     const { name, value } = e.target; 
@@ -36,6 +39,10 @@ const PostPage = () => {
   
   const postComment = async(e) => {
     e.preventDefault(); 
+    if(!authenticated){
+      setIsProhibited(true);
+      return;
+    }
     setIsLoading(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-comment`, {
@@ -90,7 +97,7 @@ const PostPage = () => {
         
       }
     }
-    if(authenticated && postInfo && commentPage === 0){
+    if(postInfo && commentPage === 0){
       getCommentsById();
     }
   }, [postInfo]); 
@@ -116,6 +123,11 @@ if(!postInfo){
 }
 
 return <div className = 'w-full grid gap-2'>
+  <AnimatePresence>
+      {
+    isProhibited && <NAPopUp onClose = {() => setIsProhibited(false)}/>
+  }
+  </AnimatePresence>
   {
     isLoading && <PopUp />
   }
@@ -126,9 +138,9 @@ return <div className = 'w-full grid gap-2'>
           <GoPaperAirplane/>
     </button>
   </form>
-  <div>
+  <div className = 'mb-10'>
     {
-     ( comments && comments.length > 0 ) &&     <Comments comments = {comments} />
+     ( comments && comments.length > 0 ) &&     <Comments setIsProhibited = {setIsProhibited} comments = {comments} />
     }
   </div>
 </div>

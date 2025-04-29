@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
-import { pop } from '../motionVariants/variant.js';
+import { fade } from '../motionVariants/variant.js';
 import { NavLink } from 'react-router-dom';
 import { useEffect } from 'react';
 
-const NAPopup = () => {
+const NAPopup = ({onClose}) => {
   
   useEffect(() => {
     document.body.style.overflow = "hidden" 
@@ -13,18 +13,21 @@ const NAPopup = () => {
     }
   }, [])
 
-return <div className = 'fixed inset-0 flex flex-col bg-black/80 justify-center z-80 items-center'>
-  <motion.div
-  variants = {pop} 
+return <motion.div
+  variants = {fade} 
   initial = 'hidden' 
   animate = 'visible'
+  exit = "hidden"
+  onClick = {onClose} className = 'fixed inset-0 flex  bg-black/80 justify-center z-50 items-center'
   >
-    <div className = 'p-4 grid gap-1  bg-white rounded-lg truncate'>
-      Youre not currently logged in.
-      <NavLink className = 'text-blue-400 underline' to = '/login'>Login</NavLink>
+    <div onClick = {e => e.stopPropagation()} className = 'p-8 grid justify-center text-center gap-6 z-50 w-11/12 md:w-8/12 lg:w-6/12 bg-white rounded-lg '>
+      <div className = 'grid gap-2'>
+              <p className = 'text-xs text-neutral-400'>Sojourn Trails</p>
+      <p>To like, comment, and access all features, please log in or create an account.</p>
+      </div>
+      <NavLink className = ' bg-blue-400 text-white p-2 rounded-lg ' to = '/login'>Login</NavLink>
     </div>
   </motion.div>
-</div>
 
 }
 

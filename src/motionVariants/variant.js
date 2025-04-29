@@ -39,18 +39,3 @@ export const pulse = {
   }
 }
 
-export const pop = {
-  hidden: {
-    height:0, 
-    width:0,
-    opacity:0
-  },
-    visible: {
-      height:'20px', 
-      width: '70%',
-      opacity: 1, 
-      transition: {
-        duration: 0.3
-      }
-    }
-}

@@ -4,9 +4,10 @@ import{ useEffect, useState } from 'react';
 import Slider from './slider.jsx';
 import StarRating from './starRating.jsx';
 import { FaRegComments, FaHeart, FaRegHeart } from "react-icons/fa";
+import { AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-
+import NAPopUp from '../components/notAuthorizedPopup.jsx'
 const Post = ({postInfo = {}}) => {
     let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo; 
   const [authorInfo, setAuthorInfo] = useState(null); 
@@ -14,7 +15,7 @@ const Post = ({postInfo = {}}) => {
   
   const { user, authenticated } = useSelector(state => state.user);
   const [isLiked, setIsLiked] = useState(false);
-  
+  const [isProhibited, setIsProhibited] = useState(false);
   
   useEffect(() => {
     const getAuthor = async() => {
@@ -24,7 +25,7 @@ const Post = ({postInfo = {}}) => {
         
         setAuthorInfo(res.data.userInfo);
       }catch(e){
-        console.log(e)
+        
       }
     }
     getAuthor();
@@ -36,6 +37,7 @@ const Post = ({postInfo = {}}) => {
   
   const likePost = async() => {
     if(!authenticated){
+      setIsProhibited(true);
       return;
     }
     try{
@@ -50,6 +52,10 @@ const Post = ({postInfo = {}}) => {
   }
   
   const dislikePost = async() => {
+    if(!authenticated){
+      setIsProhibited(true); 
+      return;
+    }
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike/${_id}`, {
         likerId: user?._id
@@ -70,6 +76,11 @@ const Post = ({postInfo = {}}) => {
   
 
 return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
+    <AnimatePresence>
+      {
+    isProhibited && <NAPopUp onClose = {() => setIsProhibited(false)}/>
+  }
+  </AnimatePresence>
   {
     authorInfo && <div>
       <UserIcon info = {authorInfo} />
@@ -90,9 +101,10 @@ return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
     <Slider files = {fileUrls} />
   </div>
 }
-<p className = 'w-full text-xs text-neutral-400 h-4'>{cpyLikes.length > 0 ? cpyLikes.length : 'No likes yet'} </p>
+
 <div className = 'w-full  flex gap-1 justify-evenly text-xs  items-center'>
-  <button onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-1 items-center text-red-400 bg-neutral-100 p-2 rounded '>
+  <button onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-1 items-center text-sm text-red-400 bg-neutral-100 p-2 rounded '>
+    {cpyLikes.length}
     {
       isLiked ? <FaHeart size = "24" /> : <FaRegHeart size = "24"/>
     }
