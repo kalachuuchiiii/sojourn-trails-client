@@ -17,8 +17,7 @@ const PostPage = () => {
     text: '',
     author: authenticated ? user._id : null,
     replyTo: null,
-    isPostToCommentHasComments: postInfo?.hasComments || false,
-    isCommentToReplyToHasReplies: false
+    isTargetPostHasComments: postInfo?.hasComments || false
   })
   const textareaRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,13 +36,12 @@ const PostPage = () => {
   
   const postComment = async(e) => {
     e.preventDefault(); 
-
     setIsLoading(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-comment`, {
         ...commentForm
       })
-      console.log(res)
+      
       setIsLoading(false);
       setCommentForm(prev => {
         return {
@@ -51,12 +49,7 @@ const PostPage = () => {
         }
       })
       const { postOf, text, author, replyTo } = commentForm;
-      setComments(prev => [...prev, {
-        postOf, 
-        text, 
-        author, 
-        replyTo
-      }])
+      setComments(prev => [ res.data.postCom, ...prev])
     }catch(e){
       console.log(e)
       setIsLoading(false);
@@ -91,7 +84,7 @@ const PostPage = () => {
       try{
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-comments-of-post/${postInfo._id}/${commentPage}`); 
         setComments(prev => [...prev, ...res.data.comments]);
-        console.log(res.data.comments)
+        
         
       }catch(e){
         
