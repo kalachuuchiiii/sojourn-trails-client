@@ -46,7 +46,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
     }; 
     if(postDesc.length < 5){
       setIsError(true); 
-      setErrMsg('Describe your post');
+      setErrMsg('Describe your post. Min 5 Characters');
       offPopUp();
       return;
     }

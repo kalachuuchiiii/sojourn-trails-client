@@ -20,7 +20,7 @@ return <div className = ' w-full overflow-hidden flex justify-center rounded-lg 
   </div>
 }
   {
-    type === "image" ? <img onClick = {() => setZoomObj(fileInfo)} onLoad = {() => setIsLoaded(true)}  className = {` object-cover z-50 rounded-lg ${!isLoaded && ' hidden ' }`} src = {file} /> : <div className = 'grid place-content-center'>
+    type === "image" ? <img onClick = {() => setZoomObj(fileInfo)} onLoad = {() => setIsLoaded(true)}  className = {` object-cover z-30 rounded-lg ${!isLoaded && ' hidden ' }`} src = {file} /> : <div className = 'grid place-content-center'>
       {
         isLoaded &&             <button onClick = {() => setZoomObj(fileInfo)} className = 'row-start-1 col-start-1 text-white h-full w-full flex items-center justify-center z-30'>
          <IoMdPlay size = '30'/>

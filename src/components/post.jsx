@@ -4,6 +4,7 @@ import{ useEffect, useState } from 'react';
 import Slider from './slider.jsx';
 import StarRating from './starRating.jsx';
 import { FaRegComments, FaHeart, FaRegHeart } from "react-icons/fa";
+import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 const Post = ({postInfo = {}}) => {
@@ -20,7 +21,7 @@ const Post = ({postInfo = {}}) => {
       
       try{
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-user-by-id/${postOf}`); 
-        console.log(res)
+        
         setAuthorInfo(res.data.userInfo);
       }catch(e){
         console.log(e)
@@ -53,7 +54,7 @@ const Post = ({postInfo = {}}) => {
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike/${_id}`, {
         likerId: user?._id
       })
-      console.log(res)
+      
       setCpyLikes(prev => [...prev].filter(liker => liker !== user._id));
       setIsLiked(false);
     }catch(e){
@@ -78,10 +79,10 @@ return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
       </div>
     </div>
   }
-  <div className = 'my-2'>
+  <NavLink to = {`/post/${_id}`} className = 'my-2'>
     <p className = 'text-neutral-400 text-xs'>Post Description</p>
       <p className = 'pl-2 text-sm'>{postDesc}</p>
-  </div>
+  </NavLink>
   
 {
   fileUrls.length > 0 &&   <div>
@@ -99,7 +100,7 @@ return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
   </button>
   <button className = 'w-full gap-1 p-2 flex items-center rounded bg-neutral-100'>
     <FaRegComments size = "22"/>
-    <p >Comment</p>
+    <NavLink to = {`/post/${_id}`} >Comment</NavLink>
   </button>
 </div>
 </div>

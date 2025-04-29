@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { fade } from '../motionVariants/variant.js';
 import { useEffect } from 'react';
 
-const PopUp = ({message = "Internal Server Error"}) => {
+const PopUp = ({message = ""}) => {
   
   useEffect(()=> {
 
