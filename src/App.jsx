@@ -47,7 +47,7 @@ function App() {
       <Routes>
         <Route element={<div className="flex flex-col justify-center items-center w-full gap-8">
           <Navbar />
-          <div className="w-11/12">
+          <div className="w-full p-1">
             <Outlet />
           </div>
 

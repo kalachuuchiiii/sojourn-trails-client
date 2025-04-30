@@ -14,13 +14,23 @@ const Homepage = ({ isSessionLookingDone }) => {
   const { user, authenticated } = useSelector(state => state.user);
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
+  const [stopPagination, setStopPagination] = useState(false);
+  const [totalPostCount, setTotalPostCount] = useState(0);
+  const [isPostFetchingLoading, setIsPostFetchingLoading] = useState(false);
   const nav = useNavigate();
 
-  const getPosts = async () => {
+  const getPosts = async (page) => {
+    if(stopPagination )return; 
+    if(totalPostCount !== 0 && totalPostCount <= posts.length){
+      setStopPagination(true); 
+      return 
+    }
     try {
+      setIsPostFetchingLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-posts/${page}`)
-      console.log(res)
-      setPosts(res.data.allPosts);
+      setTotalPostCount(res.data.totalPosts)
+      setPosts(prev => prev.length > 0 ? [...prev, ...res.data.allPosts] : res.data.allPosts);
+      setIsPostFetchingLoading(false);
     } catch (e) {
       console.log('posts', e)
     }
@@ -28,10 +38,30 @@ const Homepage = ({ isSessionLookingDone }) => {
 
 
   useEffect(() => {
-    if(authenticated){
-      getPosts();
+    if (authenticated && page === 0) {
+      getPosts(page);
     }
   }, [nav])
+
+  useEffect(() => {
+    if (!isPostFetchingLoading && authenticated && page !== 0 && !stopPagination) {
+      getPosts(page);
+    }
+  }, [page])
+
+  useEffect(() => {
+    const handlePagination = () => {
+      if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 50)) {
+        setPage(prev => prev + 1 );
+      }
+    }
+    
+    window.addEventListener("scroll", handlePagination); 
+    return()=>{
+      window.removeEventListener("scroll", handlePagination)
+    }
+
+  }, [])
 
 
   if (!isSessionLookingDone && !authenticated) {
@@ -41,14 +71,21 @@ const Homepage = ({ isSessionLookingDone }) => {
   if (isSessionLookingDone && !authenticated) {
     return <NAPopUp />
   }
-  return <div className=" w-full h-screen p-2">
+  return <div className=" flex flex-col md:flex-row md:flex-row-reverse w-full h-screen p-2">
     <Communities />
-    <NewPost />
-    <div className = 'flex flex-col pb-20 gap-3'>
-          {
-      posts.length > 0 && posts.map((post) => <Post postInfo = {post} />
-      )
-    }
+    <div className='w-full'>
+      <NewPost />
+      <div className='flex flex-col w-full mb-6 gap-6'>
+        {
+          posts.length > 0 && posts.map((post) => <Post key = {post._id} postInfo={post} />
+          )
+        }
+        <div className = 'text-center text-sm text-neutral-400'>
+                  {
+         stopPagination ? <p>No more posts to show</p> : isPostFetchingLoading && <p>Loading...</p>
+        }
+        </div>
+      </div>
     </div>
   </div>
 }

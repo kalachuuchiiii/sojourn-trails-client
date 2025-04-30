@@ -4,10 +4,12 @@ import{ useEffect, useState } from 'react';
 import Slider from './slider.jsx';
 import StarRating from './starRating.jsx';
 import { FaRegComments, FaHeart, FaRegHeart } from "react-icons/fa";
+import { months } from './comment.jsx';
 import { AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import NAPopUp from '../components/notAuthorizedPopup.jsx'
+
 const Post = ({postInfo = {}}) => {
     let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo; 
   const [authorInfo, setAuthorInfo] = useState(null); 
@@ -68,14 +70,18 @@ const Post = ({postInfo = {}}) => {
     }
   }
   
+  
   if(!authorInfo){
-    return <div className = 'w-full h-60 rounded-lg bg-neutral-100 flex animate-pulse items-center justify-center'>
+    return <div className = 'w-12/12 h-60 md:h-80 lg:h-100 rounded-lg bg-neutral-100 flex animate-pulse items-center justify-center'>
     
     </div>
   }
   
+  const [ year, month, day ] = authorInfo?.createdAt.split("T")[0].split("-").map(Number)
+  
+  
 
-return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
+return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full'>
     <AnimatePresence>
       {
     isProhibited && <NAPopUp onClose = {() => setIsProhibited(false)}/>
@@ -83,7 +89,19 @@ return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
   </AnimatePresence>
   {
     authorInfo && <div>
-      <UserIcon info = {authorInfo} />
+      <div className = 'flex  rounded gap-2 w-full items-center'>
+              <UserIcon info = {authorInfo} />
+              <div className = 'flex text-sm flex-col gap-0'>
+                <NavLink to = {`/user/${authorInfo?._id}`} className = 'font-bold'>
+                  {authorInfo?.nickname || authorInfo?.username || '...'}
+                </NavLink>
+                <p className = 'text-neutral-400'>
+                  {
+                    `Posted on ${months[month -1]} ${day}, ${year}`
+                  }
+                </p>
+              </div>
+      </div>
       <div className = 'p-2 my-1 bg-neutral-100 rounded-lg'>
         <p className = 'text-xs'>{authorInfo._id === user._id ? `You rated this place ${rate || 1} stars` : `The author rated this place ${rate || 1} stars`}</p>
               <StarRating rate = {rate }/>
@@ -93,24 +111,24 @@ return <div className = 'flex outline p-2 rounded-lg gap-2 flex-col w-full'>
   <NavLink to = {`/post/${_id}`} className = 'my-2'>
     <p className = 'text-neutral-400 text-xs'>Post Description</p>
       <p className = 'pl-2 text-sm'>{postDesc}</p>
-  </NavLink>
-  
-{
+  </NavLink> 
+  <div>
+    {
   fileUrls.length > 0 &&   <div>
     <hr className = 'my-2'/>
     <Slider files = {fileUrls} />
   </div>
 }
-
+  </div>
+  
 <div className = 'w-full  flex gap-1 justify-evenly text-xs  items-center'>
-  <button onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-1 items-center text-sm text-red-400 bg-neutral-100 p-2 rounded '>
-    {cpyLikes.length}
+  <button onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-1 items-center text-sm bg-white text-red-400  p-2 rounded '>
     {
       isLiked ? <FaHeart size = "24" /> : <FaRegHeart size = "24"/>
     }
-    <p>{isLiked ? 'Liked' : 'Like'}</p>
+    <p>{cpyLikes.length !== 0 && cpyLikes.length}</p>
   </button>
-  <button className = 'w-full gap-1 p-2 flex items-center rounded bg-neutral-100'>
+  <button className = 'w-full gap-1 p-2 flex items-center rounded bg-white'>
     <FaRegComments size = "22"/>
     <NavLink to = {`/post/${_id}`} >Comment</NavLink>
   </button>

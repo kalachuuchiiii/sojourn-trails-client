@@ -71,7 +71,9 @@ const UploadPost = ({ isSessionLookingDone }) => {
       setSuccess(true);
       setLoading(false);
       offPopUp()
-        window.location.href = `${import.meta.env.VITE_HOMEPAGE}`
+        if(res.data.success){
+          window.location.href = `${import.meta.env.VITE_HOMEPAGE}`
+        }
       
       
     }catch(e){
@@ -159,7 +161,14 @@ const UploadPost = ({ isSessionLookingDone }) => {
       }
     </AnimatePresence>
     <div className = ''>
-          <UserIcon info={user} />
+      <div className = 'flex bg-neutral-50 items-center gap-1'>
+                  <UserIcon info={user} />
+                  <div className = ' grid gap-0'>
+                                        <p className = 'font-bold text-sm'>{user.username}</p>
+                               <p className = 'text-neutral-400 text-xs'>Author</p>         
+                  </div>
+                  
+      </div>
           <div className = 'text-xs bg-neutral-100 rounded-lg grid gap-1 p-3'>
             <p >How would you rate this place?</p>
             <div className = 'text-base'>
@@ -177,7 +186,7 @@ const UploadPost = ({ isSessionLookingDone }) => {
       </div>
       <div className=' w-full  rounded-lg mb-2 overflow-x-auto'>
         {
-          fileUrls.length === 0 ? <div className='flex w-full h-60 bg-neutral-100 justify-center items-center'> <button disabled={isError} onClick={() => fileRef?.current.click()}>Upload files</button></div> : <Slider files={fileUrls} />
+          fileUrls.length === 0 ? <div className='flex w-full h-60 bg-neutral-50 justify-center items-center'> <button disabled={isError} onClick={() => fileRef?.current.click()}>Upload files</button></div> : <Slider files={fileUrls} />
         }
       </div>
 

@@ -30,11 +30,11 @@ const Communities = () => {
     getCommunities();
   }, [])
 
-  return <div className='bg-neutral-100 rounded-lg p-2'>
+  return <div className='bg-neutral-100 md:mx-5 rounded-lg p-2'>
     <p className='text-neutral-400 text-xs'>Communities</p>
     <div className='overflow-x-auto hide-scrollbar rounded-lg'>
 
-      <div className="flex items-center gap-2  w-max">
+      <div className="flex md:grid md:grid-cols md:grid-cols-2 items-center gap-2  w-max">
         <AnimatePresence>
           {
             !isFetchedSuccess && Array(10).fill().map((item, i)=> <motion.div
@@ -49,7 +49,7 @@ const Communities = () => {
           isFetchedSuccess && communities.map(community => <Community key = {community._id} info={community} />)
         }
         {
-          isFetchedSuccess && <div className='w-32 flex items-center justify-center h-32'>
+          isFetchedSuccess && <div className='w-32 flex items-center md:col-span-2 md:w-full justify-center h-32'>
             <section className='flex flex-col items-center text-center gap-2 justify-center'>
               <p className='text-sm'>Browse Communities</p>
               <button className='active:bg-neutral-300 transition-colors duration-200 rounded-full w-16 h-16 bg-white flex items-center justify-center shadow-md'><GrNext /></button>

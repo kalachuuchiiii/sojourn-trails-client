@@ -2,12 +2,16 @@ import { useState, useEffect } from 'react';
 import UserIcon from '../components/userIcon.jsx';
 import Comments from './comments.jsx'
 import axios from 'axios';
+import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { GoPaperAirplane } from "react-icons/go";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import PopUp from './popUp.jsx';
 
-const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, setReplies, setCommentInfo}) => {
+export const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+
+const Form = ({toPost, authorName, closeReply, targetComment,  isTargetCommentHasReplies, setReplies, setCommentInfo}) => {
   const { user } = useSelector(state => state.user);
   
   const [replyForm, setReplyForm] = useState({
@@ -22,9 +26,10 @@ const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, se
   const handlePostReply = async(e) => {
     e.preventDefault();
     setIsPostingReply(true);
+    const {text, ...reply } = replyForm;
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-reply`, {
-        ...replyForm
+        ...reply, text: `@${authorName} ${text}`
       })
       setCommentInfo(prev => {
         return {
@@ -40,7 +45,6 @@ const Form = ({toPost, closeReply, targetComment,  isTargetCommentHasReplies, se
       closeReply();
       setIsPostingReply(false);
     }catch(e){
-      
       setIsPostingReply(false);
     }
   }
@@ -72,6 +76,8 @@ const Comment = ({info, replyingTo, setReplyingTo, setIsProhibited}) => {
   const [isViewReplies, setIsViewReplies] = useState(false);
   const [replyPage, setReplyPage] = useState(0);
   const [isGetReplyPending, setIsGetReplyPending] = useState(false);
+  
+  console.log(commentInfo.createdAt)
   
   const handleGetReplies = async() => {
     setIsGetReplyPending(true);
@@ -149,23 +155,30 @@ const Comment = ({info, replyingTo, setReplyingTo, setIsProhibited}) => {
     }
   }
   
+  const [year, month, day] = commentInfo?.createdAt.split('T')[0].split("-").map(Number);
   
   
-return <div className = 'p-1 bg-neutral-100 rounded-lg'>
+return <div className = 'p-2 bg-neutral-50 rounded-lg'>
   
-  <div className = ' p-2 rounded-r-lg bg-white'>
-    <UserIcon info = {authorInfo}/>
+  <div className = ' p-2  rounded-r-lg bg-neutral-50'>
+    <div className = 'flex gap-2'>
+          <UserIcon info = {authorInfo}/>
+          <div className = 'flex flex-col gap-0 justify-center text-xs'>
+            <NavLink to = {`/user/${authorInfo?._id}`} className = 'font-bold'>{authorInfo?.nickname || authorInfo?.username || '...'}</NavLink>
+            <p className = 'text-neutral-400'>{`Posted on ${months[month-1]} ${day}, ${year}`}</p>
+          </div>
+    </div>
       <p>{commentInfo.text}</p>
   </div>
-  <div className = 'flex text-sm gap-6 p-1'>
-    <button onClick = {commentInfo.likes.includes(user._id) ? handleDislike : handleLike} className = ' flex gap-1 text-red-400 items-center'>{commentInfo.likes.length}{
+  <div className = 'flex  text-sm  gap-6 '>
+    <button onClick = {commentInfo.likes.includes(user._id) ? handleDislike : handleLike} className = ' flex gap-1 p-2 text-red-400 items-center'>{commentInfo.likes.length}{
       commentInfo.likes.includes(user._id) ? <FaHeart  size = "20" /> : <FaRegHeart size = "20"/>
     }</button>
-    <button onClick = {!authenticated ? () => setIsProhibited(true): () => setReplyingTo(prev => prev === commentInfo._id ? null : commentInfo._id)}>{replyingTo === commentInfo._id ? <p className = 'text-neutral-400'>Cancel Reply</p> : 'Reply'}</button>
+    <button onClick = {!authenticated ? () => setIsProhibited(true): () => setReplyingTo(prev => prev === commentInfo._id ? null : commentInfo._id)}>{replyingTo === commentInfo._id ? <p className = 'text-neutral-400 p-2'>Cancel Reply</p> : 'Reply'}</button>
   </div>
   <div>
       {
-    replyingTo === commentInfo._id && <Form closeReply = {() => setReplyingTo(null)} setCommentInfo = {setCommentInfo} isTargetCommentHasReplies = {commentInfo.hasReplies} targetComment = {commentInfo._id} toPost = {commentInfo.toPost} setReplies = {setReplies}/>
+    replyingTo === commentInfo._id && <Form authorName = {authorInfo?.username} closeReply = {() => setReplyingTo(null)} setCommentInfo = {setCommentInfo} isTargetCommentHasReplies = {commentInfo.hasReplies} targetComment = {commentInfo._id} toPost = {commentInfo.toPost} setReplies = {setReplies}/>
   }
   </div>
   <div>
