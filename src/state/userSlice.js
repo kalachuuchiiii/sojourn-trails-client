@@ -3,7 +3,8 @@ import axios from 'axios';
 
 const initialState = {
   user: {},
-  authenticated: false
+  authenticated: false,
+  isDoneSessionLooking: false
 }
 
 
@@ -15,7 +16,7 @@ const userSlice = createSlice({
       const { user, authenticated } = action.payload;
       state.user = user; 
       state.authenticated = authenticated;
-      
+      state.isDoneSessionLooking = true;    
     },
     clearState: () => {
       return initialState;

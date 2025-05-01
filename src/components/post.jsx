@@ -92,10 +92,10 @@ return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full
       <div className = 'flex  rounded gap-2 w-full items-center'>
               <UserIcon info = {authorInfo} />
               <div className = 'flex text-sm flex-col gap-0'>
-                <NavLink to = {`/user/${authorInfo?._id}`} className = 'font-bold'>
+                <NavLink to = {`/user/${authorInfo?._id}/posts`} className = 'font-bold'>
                   {authorInfo?.nickname || authorInfo?.username || '...'}
                 </NavLink>
-                <p className = 'text-neutral-400'>
+                <p className = 'text-xs text-neutral-400'>
                   {
                     `Posted on ${months[month -1]} ${day}, ${year}`
                   }

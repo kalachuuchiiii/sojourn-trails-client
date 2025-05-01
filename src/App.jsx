@@ -9,10 +9,12 @@ const Login = lazy(() => import('./pages/login.jsx'))
 const Homepage = lazy(() => import('./pages/homepage.jsx'));
 const UploadPost = lazy(() => import('./pages/uploadPost.jsx'))
 const PostPage = lazy(() => import('./pages/post.jsx'));
+const Profile = lazy(() => import('./pages/profile.jsx'));
 import Navbar from './components/navbar.jsx';
 import Footer from './components/footer.jsx';
 import Placeholder from './components/placeholder.jsx';
-
+import Posts from './pages/posts.jsx';
+import DreamList from './pages/dreamList.jsx';
 
 function App() {
   const dispatch = useDispatch();
@@ -56,6 +58,10 @@ function App() {
           <Route path='/' element={<Homepage isSessionLookingDone={isSessionLookingDone} />}  />
           <Route path='/upload' element={<UploadPost isSessionLookingDone={isSessionLookingDone} />} />
           <Route path = "/post/:postId" element = {<PostPage/>} />
+          <Route path = "/user/:userId" element = {<Profile/>} >
+            <Route path = '/user/:userId/posts' element = {<Posts />}/>
+            <Route path = '/user/:userId/dreamlist' element = {<DreamList />}/>
+          </Route>
         </Route>
       
 <Route element = {<div className = "w-11/12 md:w-8/12 lg:w-6/12  flex justify-center items-center w-11/12">

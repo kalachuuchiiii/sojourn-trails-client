@@ -164,7 +164,7 @@ return <div className = 'p-2 bg-neutral-50 rounded-lg'>
     <div className = 'flex gap-2'>
           <UserIcon info = {authorInfo}/>
           <div className = 'flex flex-col gap-0 justify-center text-xs'>
-            <NavLink to = {`/user/${authorInfo?._id}`} className = 'font-bold'>{authorInfo?.nickname || authorInfo?.username || '...'}</NavLink>
+            <NavLink to = {`/user/${authorInfo?._id}/posts`} className = 'font-bold'>{authorInfo?.nickname || authorInfo?.username || '...'}</NavLink>
             <p className = 'text-neutral-400'>{`Posted on ${months[month-1]} ${day}, ${year}`}</p>
           </div>
     </div>

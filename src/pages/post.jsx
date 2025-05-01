@@ -111,7 +111,7 @@ const PostPage = () => {
   
   useEffect(() => {
   
-    if(postInfo && commentPage === 0){
+    if(postInfo){
       getCommentsById();
     }
   }, [postInfo]); 

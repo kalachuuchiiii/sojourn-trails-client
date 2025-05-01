@@ -52,6 +52,7 @@ const EmailVerifyModal = ({username, password, email, sendOTP, onClose}) => {
   }, [resendCountdown]); 
   
   const handleSubmit = async() => {
+    if(isVerified)return;
     const isValidCode = !(/[^0-9]/.test(code.toString())) && code.toString().length === 6;
     
     if(!isValidCode){
@@ -120,7 +121,7 @@ onClick = {(e) => e.stopPropagation()} className = "fixed inset-0 flex justify-c
         </span></p>
       }
       <div className = "flex gap-2 w-full">
-              <button disabled = {isVerifyingPending || isInputFieldInvalid} onClick = {handleSubmit} className = "p-3 w-11/12 bg-gray-800 text-neutral-100 outline rounded-lg h-12 flex justify-center items-center hover:bg-white hover:text-gray-800">
+              <button disabled = {isVerifyingPending || isInputFieldInvalid || isVerified} onClick = {handleSubmit} className = "p-3 w-11/12 bg-gray-800 text-neutral-100 outline rounded-lg h-12 flex justify-center items-center hover:bg-white hover:text-gray-800">
         {isVerifyingPending? <MoonLoader color = "white" size = "16"/> : isVerified ? <FaCheck/> : 'Submit'}
       </button>
       <button disabled = {isVerified || isVerifyingPending} onClick = {onClose}>Cancel</button>
