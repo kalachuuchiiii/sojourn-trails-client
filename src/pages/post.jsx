@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useState, useEffect, useRef } from 'react' 
+import { getOneCommentById, getCommentsOfAuthor } from '../utils/getComment.js';
 import { AnimatePresence } from 'framer-motion';
 import { useSelector } from 'react-redux'; 
 import { useParams } from 'react-router-dom';
@@ -13,11 +14,17 @@ const PostPage = () => {
   const { postId } = useParams();
   const { authenticated, user} = useSelector(state => state.user);
   const [postInfo, setPostInfo] = useState(null);
+  const [highlightedComment, setHighlightedComment] = useState(null); 
+  const [authorComments, setAuthorComments] = useState([]);
   const [comments, setComments] = useState([]);
   const [totalComments, setTotalComments] = useState(0);
   const [commentForm, setCommentForm] = useState({
     toPost: postId,
-    text: '',
+    text: {
+      mention: null, 
+      message: '',
+      receiverId: null
+    },
     author: authenticated ? user._id : null,
     replyTo: null,
     isTargetPostHasComments: postInfo?.hasComments || false
@@ -28,6 +35,9 @@ const PostPage = () => {
   const [commentPage, setCommentPage] = useState(0);
   const [isCommentFetchingPending, setIsCommentFetchingPending] = useState(false);
   const [isProhibited, setIsProhibited] = useState(false);
+  const params = new URLSearchParams(window.location.search); 
+  const highlight = params.get("highlight"); 
+  const highlightId = params.get("_id");
   
   const handleChange = (e) => {
     const { name, value } = e.target; 
@@ -35,30 +45,39 @@ const PostPage = () => {
       return;
     }
     setCommentForm(prev => {
-      return {...prev, [name]: value}
+      
+      return {...prev, [name]: {
+        ...prev[name],
+        message: value
+      }}
     })
   }
   
-  const getCommentsById = async() => {
-    if(stopPagination)return;
+  const getComments = async(authorId, page) => {
     if(totalComments !== 0 && totalComments === comments.length){
       setStopPagination(true);
       return;
     }
     setIsCommentFetchingPending(true);
       try{
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-comments-of-post/${postInfo._id}/${commentPage}`); 
-        setTotalComments(res.data.totalComments);
-        setComments(prev => commentPage === 0 ? [...res.data.comments] : [...prev, ...res.data.comments]);
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-comments-of-post/exclude-from=${authorId}/post=${postId}/page=${page}/comment=${highlightId}/reply=${null}`); 
         setIsCommentFetchingPending(false);
-      }catch(e){
+        return {
+          totalComments: res.data.totalComments, 
+          comments: res.data.comments
+        }
         
+        
+      }catch(e){
+        console.log(e)
+        throw new Error(e.message);
       }
     }
   
   
   const postComment = async(e) => {
     e.preventDefault(); 
+    
     if(!authenticated){
       setIsProhibited(true);
       return;
@@ -66,13 +85,15 @@ const PostPage = () => {
     setIsLoading(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-comment`, {
-        ...commentForm
+        ...commentForm, receiverId: postInfo.postOf
       })
-      
+      console.log('comment',res)
       setIsLoading(false);
       setCommentForm(prev => {
         return {
-          ...prev, text: ''
+          ...prev, text: {
+            message: ''
+          }
         }
       })
       const { postOf, text, author, replyTo } = commentForm;
@@ -83,6 +104,49 @@ const PostPage = () => {
     }
     
   }
+  
+  const getRequiredData = async() => {
+    setIsCommentFetchingPending(true);
+    try{
+      const authorId = postInfo.postOf;
+      const [highlightedComment, commentsOfAuthor, regularComments] = await Promise.all([
+       (highlight === "comment" && highlightId) ? getOneCommentById(highlightId) : null,
+        getCommentsOfAuthor(postInfo._id, authorId),
+        getComments(postInfo.postOf, 0),
+      ])
+      
+     setHighlightedComment(highlightedComment); 
+     setAuthorComments(commentsOfAuthor);
+     setComments(regularComments.comments);
+     setTotalComments(regularComments.totalComments)
+     setIsCommentFetchingPending(false)
+    }catch(e){
+      console.log(e)
+    }
+    
+  }
+  
+  useEffect(() => {
+      if(postInfo !== null ){
+        
+        getRequiredData();
+      }
+  }, [postInfo]); 
+  
+  useEffect(() => {
+    if(stopPagination)return;
+    
+    const totalFetchedData = (comments.length + authorComments.length) + (highlightedComment !== null ? 1 : 0)
+    console.log(totalFetchedData, totalComments)
+    
+    if((totalFetchedData === totalComments) && totalComments !== 0){
+      setStopPagination(true); 
+      return;
+    }
+    if( commentPage !== 0 && comments.length > 0){
+      getComments(null, commentPage);
+    }
+  }, [commentPage])
   
   useEffect(() => {
     const textarea = textareaRef.current 
@@ -104,24 +168,9 @@ const PostPage = () => {
         console.log(e)
       }
     }
-    getPostInfo();
+    getPostInfo()
     
   }, [postId]); 
-  
-  
-  useEffect(() => {
-  
-    if(postInfo){
-      getCommentsById();
-    }
-  }, [postInfo]); 
-  
-  useEffect(() => {
-    console.log(commentPage)
-    if(commentPage !== 0 && comments.length > 0){
-      getCommentsById();
-    }
-  }, [commentPage])
   
   useEffect(() => {
     const handlePagination = () => {
@@ -131,7 +180,7 @@ const PostPage = () => {
     }
     
     window.addEventListener('scroll', handlePagination)
-    console.log(commentPage);
+    
     return() => {
       window.removeEventListener('scroll', handlePagination)
     }
@@ -140,7 +189,7 @@ const PostPage = () => {
   
 
 if(!postInfo){
-  return <div>Loading...</div>
+  return <div className = 'w-full text-center my-10 text-neutral-400'>Loading...</div>
 }
 
 return <div className = 'w-full flex flex-col md:grid md:grid-cols-2  gap-2'>
@@ -154,9 +203,9 @@ return <div className = 'w-full flex flex-col md:grid md:grid-cols-2  gap-2'>
   }
   <div className = 'w-full'>
       <Post postInfo = {postInfo}/> 
-  <form onSubmit = {postComment} className = 'w-full flex outline rounded-lg mt-1 items-center justify-between'>
-    <textarea ref = {textareaRef} onChange = {handleChange} rows = "1" name = "text" value = {commentForm.text} className = 'p-2  w-full outline-none' placeholder = "Share your thoughts here..." />
-    <button disabled = {commentForm.text.length >= 100 || commentForm.text.length === 0 || isLoading} type = "submit" className = 'p-2 flex items-center justify-center'>
+  <form onSubmit = {postComment} className = 'w-full flex outline rounded-lg mt-1 items-center justify-center'>
+    <textarea ref = {textareaRef} onChange = {handleChange} rows = "1" name = "text" value = {commentForm.text.message} className = 'p-2  w-full outline-none' placeholder = "Share your thoughts here..." />
+    <button disabled = {commentForm.text.message?.length >= 100 || commentForm.text.message?.length === 0 || isLoading} type = "submit" className = 'p-2 flex items-center justify-center'>
           <GoPaperAirplane/>
     </button>
   </form>
@@ -164,13 +213,13 @@ return <div className = 'w-full flex flex-col md:grid md:grid-cols-2  gap-2'>
   </div>
   <div >
     {
-     ( comments && comments.length > 0 ) &&     <Comments setIsProhibited = {setIsProhibited} comments = {comments} />
+     ( (comments.length > 0) || (highlightedComment) || (authorComments.length > 0)) &&     <Comments authorComments = {authorComments} highlightedComment = {highlightedComment} postAuthor = {postInfo.postOf} setIsProhibited = {setIsProhibited} comments = {comments} />
     }
-    <div className = 'text-xs text-neutral-400 w-full text-center mb-14 mt-4'>
+        </div>
+    <div className = 'text-xs text-neutral-400 w-full text-center mb-10 '>
           {
       isCommentFetchingPending ? <p>Loading...</p> : stopPagination && <p>No more comments to show</p>
     }
-    </div>
   </div>
 </div>
 

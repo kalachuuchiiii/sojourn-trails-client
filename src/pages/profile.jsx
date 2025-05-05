@@ -3,6 +3,8 @@ import { NavLink, useParams, Outlet, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react';
 import Post from '../components/post.jsx';
 import axios from 'axios';
+import Posts from '../pages/posts.jsx' 
+import Favorites from '../pages/dreamList.jsx';
 
 const Profile = () => {
   const [posts, setPosts] = useState([]);
@@ -12,15 +14,16 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { user, authenticated, isDoneSessionLooking } = useSelector(state => state.user);
   const { userId } = useParams();
-  const { pathname } = useLocation();
+  const searchParams = new URLSearchParams(window.location.search);
+  const data = searchParams.get("data");
   
   
   const pages = [
-    {to: `/user/${userId}/posts`,
+    {to: `/user/${userId}/?data=posts`,
     text: 'Posts'
   }, {
-    to: `/user/${userId}/dreamlist`, 
-    text: 'Dream List'
+    to: `/user/${userId}/?data=favorites`, 
+    text: 'Favorites'
   }]
   
   useEffect(() => {
@@ -73,10 +76,12 @@ return <div className = 'w-full'>
   </div>
   <div className = 'flex bg-neutral-50 w-full  rounded  my-2 justify-center h-10 items-center '>
     {
-      pages.map(page => <NavLink to = {page.to} className = {`w-6/12  p-2  text-center  ${page.to === pathname && ' border border-transparent border-b-2 border-b-blue-400'}`}>{page.text}</NavLink>)
+      pages.map(page => <NavLink to = {page.to} className = {`w-6/12  p-2  text-center  ${page.text.toLowerCase() == data && ' border border-transparent border-b-2 border-b-blue-400'}`}>{page.text}</NavLink>)
     }
   </div>
-  <Outlet />
+  {
+    data === 'posts' ? <Posts /> : <Favorites />
+  }
 </div>
 
 }

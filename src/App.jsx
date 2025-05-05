@@ -10,6 +10,7 @@ const Homepage = lazy(() => import('./pages/homepage.jsx'));
 const UploadPost = lazy(() => import('./pages/uploadPost.jsx'))
 const PostPage = lazy(() => import('./pages/post.jsx'));
 const Profile = lazy(() => import('./pages/profile.jsx'));
+const Notifications = lazy(() => import('./pages/notificationList.jsx'));
 import Navbar from './components/navbar.jsx';
 import Footer from './components/footer.jsx';
 import Placeholder from './components/placeholder.jsx';
@@ -58,10 +59,8 @@ function App() {
           <Route path='/' element={<Homepage isSessionLookingDone={isSessionLookingDone} />}  />
           <Route path='/upload' element={<UploadPost isSessionLookingDone={isSessionLookingDone} />} />
           <Route path = "/post/:postId" element = {<PostPage/>} />
-          <Route path = "/user/:userId" element = {<Profile/>} >
-            <Route path = '/user/:userId/posts' element = {<Posts />}/>
-            <Route path = '/user/:userId/dreamlist' element = {<DreamList />}/>
-          </Route>
+          <Route path = "/user/:userId" element = {<Profile/>}/>
+          <Route path = "/notifications" element = {<Notifications/>}/>
         </Route>
       
 <Route element = {<div className = "w-11/12 md:w-8/12 lg:w-6/12  flex justify-center items-center w-11/12">

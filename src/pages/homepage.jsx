@@ -20,7 +20,6 @@ const Homepage = ({ isSessionLookingDone }) => {
   const nav = useNavigate();
 
   const getPosts = async (page) => {
-    if(stopPagination )return; 
     if(totalPostCount !== 0 && totalPostCount <= posts.length){
       setStopPagination(true); 
       return 
@@ -28,6 +27,10 @@ const Homepage = ({ isSessionLookingDone }) => {
     try {
       setIsPostFetchingLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-posts/${page}`)
+      if(res.data.totalPosts === 0){
+        setStopPagination(true); 
+        return;
+      }
       setTotalPostCount(res.data.totalPosts)
       setPosts(prev => prev.length > 0 ? [...prev, ...res.data.allPosts] : res.data.allPosts);
       setIsPostFetchingLoading(false);
@@ -38,10 +41,10 @@ const Homepage = ({ isSessionLookingDone }) => {
 
 
   useEffect(() => {
-    if (authenticated && page === 0) {
+    if (authenticated && page === 0 && !stopPagination) {
       getPosts(page);
     }
-  }, [nav])
+  }, [authenticated, nav])
 
   useEffect(() => {
     if (!isPostFetchingLoading && authenticated && page !== 0 && !stopPagination) {

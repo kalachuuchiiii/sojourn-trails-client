@@ -44,10 +44,13 @@ const Post = ({postInfo = {}}) => {
     }
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/like/${_id}`, {
-        likerId: user?._id
+        likerId: user?._id,
+        receiverId: authorInfo?._id
       }); 
+      
       setCpyLikes(prev => [...prev, user._id])
       setIsLiked(true);
+      
     }catch(e){
       console.log(e)
     }
@@ -60,7 +63,8 @@ const Post = ({postInfo = {}}) => {
     }
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike/${_id}`, {
-        likerId: user?._id
+        likerId: user?._id,
+        receiverId: authorInfo?._id
       })
       
       setCpyLikes(prev => [...prev].filter(liker => liker !== user._id));
@@ -92,7 +96,7 @@ return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full
       <div className = 'flex  rounded gap-2 w-full items-center'>
               <UserIcon info = {authorInfo} />
               <div className = 'flex text-sm flex-col gap-0'>
-                <NavLink to = {`/user/${authorInfo?._id}/posts`} className = 'font-bold'>
+                <NavLink to = {`/user/${authorInfo?._id}/?data=posts`} className = 'font-bold'>
                   {authorInfo?.nickname || authorInfo?.username || '...'}
                 </NavLink>
                 <p className = 'text-xs text-neutral-400'>
