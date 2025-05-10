@@ -11,7 +11,6 @@ import OptionSidebar from '../modals/optionSidebar.jsx';
 import { CiHome, CiSettings } from "react-icons/ci";
 import { IoPersonOutline, IoPersonAddOutline } from "react-icons/io5";
 import { FaRegBell } from 'react-icons/fa'
-import { LiaUserFriendsSolid } from "react-icons/lia";
 import { RiUserCommunityLine } from "react-icons/ri";
 
 
@@ -32,7 +31,6 @@ const Navbar = () => {
   const pages = [
   { to: '/', icon: <CiHome size = "24" />, url:'/'},
   { to: `/user/${user?._id}/?data=posts`, icon: <IoPersonOutline size = "24"/>, url:`/user/${user?._id}/`},
-  { to: '/friends', icon: <LiaUserFriendsSolid size = "24"/>, url: `/friends`},
   { to: '/requests', icon: <IoPersonAddOutline size = "24"/>, url: `/requests`},
   { to: '/communities', icon: <RiUserCommunityLine size = "24" />, url: `/communities`},
     {
@@ -73,7 +71,7 @@ return <div className = 'w-full outline flex flex-col' >
     <div className = 'flex w-full gap-1 my-2 px-2 items-center  justify-evenly'>
       {
     authenticated && pages.map(({to, icon, url}) => {
-    return <NavLink className = {`p-3 transition-transform duration-300 rounded w-full outline ${pathname === url && ' z-10 outline-blue-400 outline-2' } flex items-center justify-center`} to = {to}>{icon}</NavLink>
+    return <NavLink className = {`p-3 transition-transform duration-300 rounded-t w-full  ${pathname === url && ' z-10 border-b-2 border-blue-400' } flex items-center justify-center`} to = {to}>{icon}</NavLink>
     })
   }
   </div>

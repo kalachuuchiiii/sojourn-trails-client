@@ -9,11 +9,14 @@ import { AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import NAPopUp from '../components/notAuthorizedPopup.jsx'
+import PostSettings from '../components/postSettings.jsx';
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 const Post = ({postInfo = {}}) => {
     let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo; 
   const [authorInfo, setAuthorInfo] = useState(null); 
   const [cpyLikes, setCpyLikes] = useState(likes);
+  const [isPostSettingOpen, setIsPostSettingOpen] = useState(false);
   
   const { user, authenticated } = useSelector(state => state.user);
   const [isLiked, setIsLiked] = useState(false);
@@ -45,8 +48,9 @@ const Post = ({postInfo = {}}) => {
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/like/${_id}`, {
         likerId: user?._id,
-        receiverId: authorInfo?._id
+        recipient: authorInfo?._id
       }); 
+      console.log(res)
       
       setCpyLikes(prev => [...prev, user._id])
       setIsLiked(true);
@@ -64,8 +68,9 @@ const Post = ({postInfo = {}}) => {
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike/${_id}`, {
         likerId: user?._id,
-        receiverId: authorInfo?._id
+        recipient: authorInfo?._id
       })
+      console.log(res)
       
       setCpyLikes(prev => [...prev].filter(liker => liker !== user._id));
       setIsLiked(false);
@@ -88,12 +93,13 @@ const Post = ({postInfo = {}}) => {
 return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full'>
     <AnimatePresence>
       {
-    isProhibited && <NAPopUp onClose = {() => setIsProhibited(false)}/>
+    isProhibited ? <NAPopUp onClose = {() => setIsProhibited(false)}/> : isPostSettingOpen && <PostSettings postLink = {`/post/${_id}`} postAuthorId = {authorInfo._id} postId = {_id} onClose = {() => setIsPostSettingOpen(false)}/>
   }
   </AnimatePresence>
   {
     authorInfo && <div>
-      <div className = 'flex  rounded gap-2 w-full items-center'>
+      <div className = "flex justify-between items-center">
+              <div className = 'flex  rounded gap-2 w-full items-center'>
               <UserIcon info = {authorInfo} />
               <div className = 'flex text-sm flex-col gap-0'>
                 <NavLink to = {`/user/${authorInfo?._id}/?data=posts`} className = 'font-bold'>
@@ -105,6 +111,10 @@ return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full
                   }
                 </p>
               </div>
+      </div>
+      <button onClick = {() => setIsPostSettingOpen(prev => !prev)} className = "p-2">
+              <BsThreeDotsVertical/>
+      </button>
       </div>
       <div className = 'p-2 my-1 bg-neutral-100 rounded-lg'>
         <p className = 'text-xs'>{authorInfo._id === user._id ? `You rated this place ${rate || 1} stars` : `The author rated this place ${rate || 1} stars`}</p>
@@ -133,7 +143,7 @@ return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full
     <p>{cpyLikes.length !== 0 && cpyLikes.length}</p>
   </button>
   <button className = 'w-full gap-1 p-2 flex items-center rounded bg-white'>
-    <FaRegComments size = "22"/>
+    <FaRegComments className = "text-neutral-500" size = "22"/>
     <NavLink to = {`/post/${_id}`} >Comment</NavLink>
   </button>
 </div>

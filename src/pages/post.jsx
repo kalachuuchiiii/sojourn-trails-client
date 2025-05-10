@@ -8,6 +8,7 @@ import Post from '../components/post.jsx';
 import { GoPaperAirplane } from "react-icons/go";
 import PopUp from '../components/popUp.jsx';
 import Comments from '../components/comments.jsx';
+
 import NAPopUp from '../components/notAuthorizedPopup.jsx';
 
 const PostPage = () => {
@@ -85,7 +86,7 @@ const PostPage = () => {
     setIsLoading(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/post-comment`, {
-        ...commentForm, receiverId: postInfo.postOf
+        ...commentForm, recipient: postInfo.postOf
       })
       console.log('comment',res)
       setIsLoading(false);
@@ -111,7 +112,7 @@ const PostPage = () => {
       const authorId = postInfo.postOf;
       const [highlightedComment, commentsOfAuthor, regularComments] = await Promise.all([
        (highlight === "comment" && highlightId) ? getOneCommentById(highlightId) : null,
-        getCommentsOfAuthor(postInfo._id, authorId),
+        getCommentsOfAuthor(postInfo._id, authorId, highlightId),
         getComments(postInfo.postOf, 0),
       ])
       
@@ -211,7 +212,7 @@ return <div className = 'w-full flex flex-col md:grid md:grid-cols-2  gap-2'>
   </form>
   <p className = ' my-4 md:my-8 text-center text-neutral-400'>We'd love to hear your thoughts—drop a comment below and share your experience with us!</p>
   </div>
-  <div >
+  <div className = 'bg-neutral-100' >
     {
      ( (comments.length > 0) || (highlightedComment) || (authorComments.length > 0)) &&     <Comments authorComments = {authorComments} highlightedComment = {highlightedComment} postAuthor = {postInfo.postOf} setIsProhibited = {setIsProhibited} comments = {comments} />
     }

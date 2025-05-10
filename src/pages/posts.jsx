@@ -8,12 +8,20 @@ const Posts = () => {
   const { user, authenticated } = useSelector(state => state.user);
   const [page, setPage] = useState(0);
   const [posts, setPosts] = useState([]);
+  const [stopPagination, setStopPagination] = useState(false);
+  const [totalPosts, setTotalPosts] = useState(0);
   const {userId} = useParams();
+  const [maxPage, setMaxPage] = useState(0);
+  const limit = 10;
+  console.log(page, maxPage)
+  
   const getPosts = async(page) => {
       try{
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-posts-of-user/${userId}/${page}`);
-        console.log(res)
+        console.log("posts",res)
         setPosts(prev => prev.length === 0 && page === 0 ? res.data.posts : [...prev, ...res.data.posts]);
+        setTotalPosts(res.data.totalPosts);
+        setMaxPage(Math.ceil(posts.length/10))
       }catch(e){
         console.log(e)
       }
@@ -21,8 +29,12 @@ const Posts = () => {
   
   useEffect(() => {
     const handlePagination = () => {
+          if(page === maxPage){
+      setStopPagination(true)
+      return;
+    }
       if ((window.innerHeight + window.scrollY) >= (document.body.scrollHeight - 80)) {
-        setPage(prev => prev + 1 );
+        setPage(prev => prev === maxPage ? prev : prev + 1);
       }
     }
     window.addEventListener("scroll", handlePagination); 
@@ -32,6 +44,7 @@ const Posts = () => {
   }, []); 
   
   useEffect(() => {
+    
     if(page === 0 && posts.length === 0){
       getPosts(0);
     }
@@ -45,7 +58,7 @@ const Posts = () => {
 
 return <div className = 'mb-10'>
   {
-    posts.length > 0 ? posts.map((post) => <Post postInfo = {post} />) : <p className = 'w-full text-center my-4 text-neutral-400'>No posts yet</p>
+    posts.length > 0 ? posts.map((post) => <Post postInfo = {post} />) : stopPagination ? <p>No more post to show</p> : <p className = 'w-full text-center my-4 text-neutral-400'>No posts yet</p>
   }
 </div>
 

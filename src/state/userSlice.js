@@ -4,7 +4,8 @@ import axios from 'axios';
 const initialState = {
   user: {},
   authenticated: false,
-  isDoneSessionLooking: false
+  isDoneSessionLooking: false,
+  userFriendRequestList: []
 }
 
 
@@ -20,6 +21,9 @@ const userSlice = createSlice({
     },
     clearState: () => {
       return initialState;
+    }, 
+    newSentRequest: (state, action) => {
+      state.user = {...state.user, sentRequests: [...state.user.sentRequests, action.payload.requestRecepient]}
     }
   }, 
   extraReducers: (builder) => {
@@ -27,4 +31,4 @@ const userSlice = createSlice({
 })
 
 export default userSlice.reducer;
-export const { setUser, clearState } = userSlice.actions;
+export const { setUser, clearState, newSentRequest } = userSlice.actions;

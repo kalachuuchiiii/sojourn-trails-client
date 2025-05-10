@@ -11,9 +11,22 @@ export const getOneCommentById = async(id) => {
   }
 }
 
-export const getCommentsOfAuthor = async(postId,authorId) => {
+export const getRepliesOfComment = async(options, page) => {
   try{
-    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-comments-of-author/author=${authorId}/post=${postId}`); 
+    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-replies-of-comment`, {
+      params: {
+        options: JSON.stringify(options)
+      }
+    }); 
+     return res.data.replies;
+  }catch(e){
+    console.log(e)
+  }
+}
+
+export const getCommentsOfAuthor = async(postId,authorId, highlightId) => {
+  try{
+    const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-comments-of-author/author=${authorId}/post=${postId}/highlightId=${highlightId}`); 
     console.log(res)
     return res.data.authorComments;
   }catch(e){

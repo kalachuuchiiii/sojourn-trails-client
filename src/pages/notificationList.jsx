@@ -7,18 +7,23 @@ const NotificationList = () => {
   const [notificationsToday, setNotificationsToday] = useState(null);
   const [notifications, setNotifications] = useState(null); 
   const [ page, setPage ] = useState(0);
+  const [isServerSideOK, setIsServerSideOK] = useState(false);
   const { user, authenticated, isDoneSessionLooking } = useSelector(state => state.user);
+  
   
   
   useEffect(() => {
     const getNotifications = async() => {
       try{
-        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-notifications-of-user/${user._id}/${page}`); 
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-notifications-of-user/${user._id}/${0}`); 
         
-        const notifsToday = res.data.notifications.filter(notification => notification.createdAt.split("T")[0] === new Date().toISOString().split("T")[0])
+        if(res?.data?.success){
+          const notifsToday = res.data.notifications.filter(notification => notification.createdAt.split("T")[0] === new Date().toISOString().split("T")[0])
         const notifs = res.data.notifications.filter(notification => notification.createdAt.split("T")[0] !== new Date().toISOString().split("T")[0])
         setNotificationsToday(notifsToday);
-        setNotifications(notifs)
+        setNotifications(notifs); 
+        setIsServerSideOK(true);
+        }
       }catch(e){
         console.log(e)
       }
@@ -27,6 +32,10 @@ const NotificationList = () => {
       getNotifications();
     }
   }, [isDoneSessionLooking, authenticated]); 
+  
+  if(!isServerSideOK){
+    return <div>Loading...</div>
+  }
   
   if(!notifications && !notificationsToday){
     return <div>No notifications yet</div>

@@ -10,6 +10,25 @@ export const fade = {
   }
 }
 
+export const fromBottom = {
+  visible: {
+    y:0,
+    opacity:1,
+    transition: {
+      duration: 0.3, 
+      type: 'tween'
+    }
+  }, 
+  hidden: {
+    y:"100%",
+    opacity:0,
+    transition: {
+      duration: 0.3, 
+      type: 'tween'
+    }
+  }
+}
+
 export const side = {
   hidden: {
     x: '100%'

@@ -6,10 +6,14 @@ import axios from 'axios';
 
 const Register = lazy(() => import('./pages/register.jsx'))
 const Login = lazy(() => import('./pages/login.jsx'))
+const CommentReply = lazy(() => import('./pages/commentReply.jsx'));
 const Homepage = lazy(() => import('./pages/homepage.jsx'));
 const UploadPost = lazy(() => import('./pages/uploadPost.jsx'))
 const PostPage = lazy(() => import('./pages/post.jsx'));
+const FriendRequestList = lazy(() => import('./pages/friendRequests.jsx'));
 const Profile = lazy(() => import('./pages/profile.jsx'));
+const CommunityList = lazy(() => import('./pages/communityList.jsx'));
+const Settings = lazy(() => import('./pages/settings.jsx'));
 const Notifications = lazy(() => import('./pages/notificationList.jsx'));
 import Navbar from './components/navbar.jsx';
 import Footer from './components/footer.jsx';
@@ -61,6 +65,10 @@ function App() {
           <Route path = "/post/:postId" element = {<PostPage/>} />
           <Route path = "/user/:userId" element = {<Profile/>}/>
           <Route path = "/notifications" element = {<Notifications/>}/>
+          <Route path = "/settings" element = {<Settings/>}/>
+          <Route path = "/requests" element = {<FriendRequestList/>}/>
+          <Route path = "/communities" element = {<CommunityList/>}/>
+          <Route path = "/comment/:commentId/reply/:replyId" element = {<CommentReply/>}/>
         </Route>
       
 <Route element = {<div className = "w-11/12 md:w-8/12 lg:w-6/12  flex justify-center items-center w-11/12">
