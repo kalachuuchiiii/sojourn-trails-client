@@ -31,7 +31,9 @@ const Post = ({postInfo = {}}) => {
       try{
         const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-user-by-id/${postOf}`); 
         
-        setAuthorInfo(res.data.userInfo);
+        if(res){
+          setAuthorInfo(res.data.userInfo);
+        }
       }catch(e){
         
       }
@@ -55,11 +57,13 @@ const Post = ({postInfo = {}}) => {
         likerId: user?._id,
         recipient: authorInfo?._id
       }); 
-      console.log(res)
       
-      setCpyLikes(prev => [...prev, user._id])
+      
+      if(res){
+        setCpyLikes(prev => [...prev, user?._id])
       setIsLiked(true);
       setIsServerBusy(false);
+      }
       
     }catch(e){
       console.log(e)
@@ -95,7 +99,7 @@ const Post = ({postInfo = {}}) => {
   }
   
   
-  if(!authorInfo){
+  if(!authorInfo || !_id){
     return <div className = 'w-12/12 h-60 md:h-80 lg:h-100 rounded-lg bg-neutral-100 flex animate-pulse items-center justify-center'>
     
     </div>
@@ -132,7 +136,7 @@ return <div className = 'flex bg-neutral-50 p-1 rounded-lg gap-2 flex-col w-full
       </button>
       </div>
       <div className = 'p-2 my-1 bg-neutral-100 rounded-lg'>
-        <p className = 'text-xs'>{authorInfo._id === user._id ? `You rated this place ${rate || 1} stars` : `The author rated this place ${rate || 1} stars`}</p>
+        <p className = 'text-xs'>{authorInfo?._id === user?._id ? `You rated this place ${rate || 1} stars` : `The author rated this place ${rate || 1} stars`}</p>
               <StarRating rate = {rate }/>
       </div>
     </div>
