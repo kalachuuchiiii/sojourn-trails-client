@@ -2,7 +2,9 @@ import { motion } from 'framer-motion';
 import { fade } from '../motionVariants/variant.js';
 import { useEffect } from 'react';
 
-const PopUp = ({message = ""}) => {
+const PopUp = ({message = <div className = ' bg-gradient-to-br from-blue-400 to-white animate-spin size-8 rounded-full grid place-items-center'><div className = "size-6 rounded-full bg-black/80">
+  
+</div></div>}) => {
   
   useEffect(()=> {
 

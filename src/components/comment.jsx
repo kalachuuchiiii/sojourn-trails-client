@@ -3,9 +3,10 @@ import UserIcon from '../components/userIcon.jsx';
 import Comments from './comments.jsx'
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { GoPaperAirplane } from "react-icons/go";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { useSelector, useDispatch } from 'react-redux';
+import { viewLikers } from '../state/likersSlice.js';
 import { getRepliesOfComment } from '../utils/getComment.js';
 import PopUp from './popUp.jsx';
 
@@ -82,7 +83,7 @@ const Form = ({ toPost, authorName, closeReply, targetComment, isTargetCommentHa
   </form>
 }
 
-const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplyingTo, setIsProhibited}) => {
+const Comment = ({ info, highlighted = false, postAuthor, replyingTo, setReplyingTo, setIsProhibited }) => {
   const { user, authenticated } = useSelector(state => state.user);
   const [authorInfo, setAuthorInfo] = useState(null)
   const [replies, setReplies] = useState([]);
@@ -92,6 +93,15 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
   const [isGetReplyPending, setIsGetReplyPending] = useState(false);
   const searchParams = new URLSearchParams(window.location.search);
   const highlightedCommentId = searchParams.get("_id")
+  const dispatch = useDispatch();
+  
+  const handleViewLikers = (e) => {
+    e.stopPropagation()
+      const likerIds = commentInfo.likes
+      dispatch(viewLikers({likerIds}))
+      console.log("oat")
+    }
+  
 
 
   const handleGetReplies = async () => {
@@ -100,10 +110,10 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
     try {
       const replyOptions = {
         replyTo: commentInfo?._id,
-      
+
       }
-      
-      const data = await getRepliesOfComment(replyOptions, 0); 
+
+      const data = await getRepliesOfComment(replyOptions, 0);
       setReplies(data);
       setIsGetReplyPending(false);
 
@@ -143,7 +153,7 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
         parentComment: commentInfo.replyTo,
         notifReceiver: commentInfo.author,
         parentPostId: commentInfo.toPost,
-        
+
       });
 
       setCommentInfo(prev => {
@@ -167,12 +177,17 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
         notifReceiver: commentInfo.author,
 
       });
-      const likesExcludedUser = commentInfo.likes.filter(liker => liker !== user._id);
+
       setCommentInfo(prev => {
-        return {
-          ...prev, likes: likesExcludedUser
+        const updatedLikes = [...prev.likes];
+        const userIndex = updatedLikes.indexOf(user._id);
+        if (userIndex > -1) {
+          console.log(userIndex, "removed")
+          updatedLikes.splice(userIndex, 1);
         }
-      })
+        return { ...prev, likes: updatedLikes };
+      });
+
     } catch (e) {
       console.log(e)
     }
@@ -184,10 +199,10 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
   if (!authorInfo) {
     return <div></div>
   }
-  
+
   console.log(authorInfo._id, postAuthor)
 
-  return <div className={`p-2 border-l border-l-[1.5px] border-l-blue-400 rounded-r-lg  ${((highlightedCommentId === info._id) || (highlighted))? " bg-neutral-200/50" : " bg-neutral-50"}`}>
+  return <div className={`p-2 border-l border-l-[1.5px] border-l-blue-400 rounded-r-lg  ${((highlightedCommentId === info._id) || (highlighted)) ? " bg-neutral-200/50" : " bg-neutral-50"}`}>
 
     <div className=' p-2  rounded-r-lg '>
       <div className='flex gap-2'>
@@ -209,9 +224,12 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
       </div>
     </div>
     <div className='flex  text-sm  gap-6 '>
-      <button onClick={commentInfo.likes.includes(user._id) ? handleDislike : handleLike} className=' flex gap-1 p-2 text-red-400 items-center'>{
+      <button onClick={commentInfo.likes.includes(user._id) ? handleDislike : handleLike} className=' flex gap-3 p-2 text-red-400 items-center'><div>
+        {
         commentInfo.likes.includes(user._id) ? <FaHeart size="20" /> : <FaRegHeart size="20" />
-      }{commentInfo.likes.length !== 0 && commentInfo.likes.length}</button>
+      } 
+      </div>
+      <p onClick = {handleViewLikers} role = "button" className = 'text-sm active:underline'>{commentInfo.likes.length !== 0 && commentInfo.likes.length}</p></button>
       <button onClick={!authenticated ? () => setIsProhibited(true) : () => setReplyingTo(prev => prev === commentInfo._id ? null : commentInfo._id)}>{replyingTo === commentInfo._id ? <p className='text-neutral-400 p-2'>Cancel Reply</p> : 'Reply'}</button>
     </div>
     <div>
@@ -227,7 +245,7 @@ const Comment = ({ info,highlighted = false, postAuthor, replyingTo, setReplying
     <div>
       {
         isGetReplyPending ? <p className='text-xs text-neutral-400'>Loading replies...</p> : (replies && replies.length > 0 && isViewReplies) && <div className='w-full ml-2'>
-          <Comments setIsProhibited={setIsProhibited} postAuthor = {postAuthor} comments={replies} />
+          <Comments setIsProhibited={setIsProhibited} postAuthor={postAuthor} comments={replies} />
         </div>
       }
     </div>

@@ -10,6 +10,23 @@ export const fade = {
   }
 }
 
+export const fromBottomToTop = {
+  hidden: {
+    y: "100%", 
+    transition: {
+      duration: 0.3,
+      type: "tween"
+    }
+  }, 
+  visible: {
+    y: 0, 
+    transition: {
+      type: "tween",
+      duration: 0.3
+    }
+  }
+}
+
 export const fromBottom = {
   visible: {
     y:0,

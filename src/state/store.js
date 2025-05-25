@@ -1,9 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
-import userSlice from './userSlice.js';
-
+import userReducer from './userSlice.js';
+import likerReducer from './likersSlice.js';
+import postReducer from './postsSlice.jsx';
 const store = configureStore({
   reducer: {
-    user: userSlice
+    user: userReducer, 
+    liker: likerReducer,
+    posts: postReducer
   }
 })
 

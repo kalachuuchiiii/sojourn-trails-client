@@ -1,13 +1,14 @@
 import axios from 'axios';
 import UserIcon from './userIcon.jsx';
-import{ useEffect, useState } from 'react';
+import{ useEffect, useState, useRef } from 'react';
 import Slider from './slider.jsx';
 import StarRating from './starRating.jsx';
 import { FaRegComments, FaHeart, FaRegHeart } from "react-icons/fa";
 import { months } from './comment.jsx';
 import { AnimatePresence } from 'framer-motion';
 import { NavLink } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { viewLikers } from '../state/likersSlice.js';
 import NAPopUp from '../components/notAuthorizedPopup.jsx'
 import PostSettings from '../components/postSettings.jsx';
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -15,10 +16,12 @@ import { BsThreeDotsVertical } from "react-icons/bs";
 const Post = ({postInfo = {}}) => {
     let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo; 
   const [authorInfo, setAuthorInfo] = useState(null); 
+  
   const [cpyLikes, setCpyLikes] = useState(likes);
   const [isPostSettingOpen, setIsPostSettingOpen] = useState(false);
-  
+  const [isServerBusy, setIsServerBusy] = useState(false);
   const { user, authenticated } = useSelector(state => state.user);
+  const dispatch = useDispatch();
   const [isLiked, setIsLiked] = useState(false);
   const [isProhibited, setIsProhibited] = useState(false);
   
@@ -40,11 +43,13 @@ const Post = ({postInfo = {}}) => {
     setIsLiked(cpyLikes.some(liker => liker === user?._id));
   }, [likes])
   
+  
   const likePost = async() => {
-    if(!authenticated){
+    if(!authenticated || isLiked){
       setIsProhibited(true);
       return;
     }
+    setIsServerBusy(true);
     try{
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/like/${_id}`, {
         likerId: user?._id,
@@ -54,26 +59,36 @@ const Post = ({postInfo = {}}) => {
       
       setCpyLikes(prev => [...prev, user._id])
       setIsLiked(true);
+      setIsServerBusy(false);
       
     }catch(e){
       console.log(e)
     }
   }
   
+  const handleViewLikers = (e) => {
+    e.stopPropagation()
+      const likerIds = [...cpyLikes]
+      dispatch(viewLikers({likerIds}))
+      console.log("oat")
+    }
+  
   const dislikePost = async() => {
-    if(!authenticated){
+    if(!authenticated || !isLiked){
       setIsProhibited(true); 
       return;
     }
     try{
+      setIsServerBusy(true)
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/dislike/${_id}`, {
         likerId: user?._id,
         recipient: authorInfo?._id
       })
-      console.log(res)
+  
       
       setCpyLikes(prev => [...prev].filter(liker => liker !== user._id));
       setIsLiked(false);
+      setIsServerBusy(false)
     }catch(e){
       console.log(e)
     }
@@ -90,7 +105,7 @@ const Post = ({postInfo = {}}) => {
   
   
 
-return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full'>
+return <div className = 'flex bg-neutral-50 p-1 rounded-lg gap-2 flex-col w-full'>
     <AnimatePresence>
       {
     isProhibited ? <NAPopUp onClose = {() => setIsProhibited(false)}/> : isPostSettingOpen && <PostSettings postLink = {`/post/${_id}`} postAuthorId = {authorInfo._id} postId = {_id} onClose = {() => setIsPostSettingOpen(false)}/>
@@ -134,13 +149,12 @@ return <div className = 'flex bg-neutral-50 p-2 rounded-lg gap-2 flex-col w-full
   </div>
 }
   </div>
-  
 <div className = 'w-full  flex gap-1 justify-evenly text-xs  items-center'>
-  <button onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-1 items-center text-sm bg-white text-red-400  p-2 rounded '>
+  <button disabled = {isServerBusy}  onClick = {isLiked ? dislikePost : likePost } className = 'w-full flex gap-3 items-center text-sm bg-white text-red-400  p-2 rounded '>
     {
       isLiked ? <FaHeart size = "24" /> : <FaRegHeart size = "24"/>
     }
-    <p>{cpyLikes.length !== 0 && cpyLikes.length}</p>
+    <button className = 'active:underline text-base' onClick = {handleViewLikers}>{cpyLikes.length !== 0 && cpyLikes.length}</button>
   </button>
   <button className = 'w-full gap-1 p-2 flex items-center rounded bg-white'>
     <FaRegComments className = "text-neutral-500" size = "22"/>

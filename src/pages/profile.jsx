@@ -5,13 +5,14 @@ import Post from '../components/post.jsx';
 import axios from 'axios';
 import Posts from '../pages/posts.jsx'
 import Favorites from '../pages/dreamList.jsx';
-import { addFriend, unfriend, followback } from '../utils/friendSystem.js';
+import { follow, unfriend, followback } from '../utils/friendSystem.js';
 import { AnimatePresence } from 'framer-motion';
 import { getUserInfo } from '../utils/getUserInfo.js'
 import { MoonLoader } from 'react-spinners';
 import UnfriendModal from '../modals/unfriendOptionModal.jsx';
 import { removeRequest } from '../utils/removeRequest.js';
 import { newSentRequest } from '../state/userSlice.js';
+import UserIcon from '../components/userIcon.jsx';
 
 
 const Profile = () => {
@@ -63,10 +64,9 @@ const Profile = () => {
   const sendFriendRequest = async () => {
     try {
       setIsOperationPending(true)
-      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/send-friend-request`, {
-        recipient: userId,
-        sender: user._id
-      })
+      const sender = user._id; 
+      const recipient = userId;
+      const res = await follow({sender, recipient})
       if (res) {
         setRelationshipStatus(res.data.status);
         setIsOperationPending(false)
@@ -142,7 +142,7 @@ const Profile = () => {
     friend: <button disabled={isOperationPending} onClick={handleOpenOptions} className={btnStyle}  >{isOperationPending ? <MoonLoader size="20" color="white" /> : "Friends"}</button>,
     follower: <button disabled={isOperationPending} onClick={handleFollowback} className={btnStyle}>{isOperationPending ? <MoonLoader size="20" color="white" /> : "Follow Back"}</button>,
     following: <button disabled={isOperationPending} onClick={cancelRequest} className={btnStyle}>{isOperationPending ? <MoonLoader size="20" color="white" /> : "Unfollow"}</button>,
-    user: <button className={btnStyle}>Edit Profile</button>,
+    user: <NavLink to = '/edit-profile' className={btnStyle}>Edit Profile</NavLink>,
     default: <button disabled={isOperationPending} onClick={sendFriendRequest} className={btnStyle}>{isOperationPending ? <MoonLoader size="20" color="white" /> : "Follow"}</button>
   }
 
@@ -157,7 +157,7 @@ const Profile = () => {
   }
 
 
-
+console.log("info", userInfo)
 
   return <div className='w-full'>
     <AnimatePresence>
@@ -167,13 +167,16 @@ const Profile = () => {
     </AnimatePresence>
     <div className='w-full flex flex-col items-center justify-center'>
       <div className='flex items-center justify-center rounded-full size-38 bg-white'>
-        <div className='size-36 rounded-full overflow-hidden'>
-          <img src={userInfo.icon} />
-        </div>
+
+          <UserIcon info = {userInfo} size = "40" />
+
       </div>
       <div className=' my-4 rounded p-2 w-full bg-neutral-50'>
         <div className=' text-center'>
-          <p className='text-2xl  font-bold'>{userInfo.nickname || userInfo.username}</p>
+          <div className='text-2xl py-2 font-bold'>{userInfo?.nickname ? <div>
+            <p className = 'font-bold '>{userInfo.nickname}</p>
+            <p className = "text-sm font-semibold text-neutral-400">@{userInfo.username}</p>
+          </div> : <p>{userInfo.username}</p>}</div>
           <p className='text-sm my-2'>{userInfo.bio && userInfo.bio}</p>
         </div>
         <div className='w-full flex gap-1 justify-center'>
