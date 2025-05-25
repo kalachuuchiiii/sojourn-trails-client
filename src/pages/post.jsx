@@ -26,7 +26,7 @@ const PostPage = () => {
       message: '',
       receiverId: null
     },
-    author: authenticated ? user._id : null,
+    author: authenticated ? user?._id : null,
     replyTo: null,
     isTargetPostHasComments: postInfo?.hasComments || false
   })

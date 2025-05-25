@@ -33,7 +33,8 @@ const Homepage = ({ isSessionLookingDone }) => {
     try {
       setIsPostFetchingLoading(true);
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/get-posts/${page}`)
-      if(res.data.totalPosts === 0){
+      if(res){
+        if(res.data.totalPosts === 0){
         setStopPagination(true); 
         return;
       }
@@ -41,6 +42,7 @@ const Homepage = ({ isSessionLookingDone }) => {
       
       setPosts(prev => prev.length > 0 ? [...prev, ...res.data.allPosts] : res.data.allPosts);
       setIsPostFetchingLoading(false);
+      }
     } catch (e) {
       console.log('posterror', e)
     }
@@ -50,7 +52,7 @@ const Homepage = ({ isSessionLookingDone }) => {
 
   useEffect(() => {
     
-    if (authenticated && page === 0 && !stopPagination && savedPosts.length === 0) {
+    if (authenticated && page === 0 && !stopPagination && savedPosts?.length === 0) {
       getPosts(0);
     }
   }, [authenticated, nav, savedPosts])
@@ -108,7 +110,7 @@ useEffect(() => {
     return <NAPopUp />
   }
   
-  if(isSessionLookingDone && authenticated && !user.hasFinishedOnboarding){
+  if(isSessionLookingDone && authenticated && !user?.hasFinishedOnboarding){
     nav("/customize-feed")
   }
   
@@ -118,7 +120,7 @@ useEffect(() => {
       <NewPost />
       <div className='flex flex-col w-full mb-6 gap-6'>
         {
-          posts.length > 0 && posts.map((post) => <Post key = {post._id} postInfo={post} />
+          posts?.length > 0 && posts.map((post) => <Post key = {post._id} postInfo={post} />
           )
         }
         <div className = 'text-center text-sm text-neutral-400'>

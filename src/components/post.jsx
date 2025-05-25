@@ -13,8 +13,9 @@ import NAPopUp from '../components/notAuthorizedPopup.jsx'
 import PostSettings from '../components/postSettings.jsx';
 import { BsThreeDotsVertical } from "react-icons/bs";
 
-const Post = ({postInfo = {}}) => {
-    let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo; 
+const Post = ({postInfo = { postOf: null, fileUrls: [], rate: 0, likes: 0, postDesc: "", _id:null}}) => {
+    let { postOf, fileUrls, rate, likes, postDesc, _id } = postInfo
+    
   const [authorInfo, setAuthorInfo] = useState(null); 
   
   const [cpyLikes, setCpyLikes] = useState(likes);
@@ -99,7 +100,7 @@ const Post = ({postInfo = {}}) => {
   }
   
   
-  if(!authorInfo || !_id){
+  if(!authorInfo || !_id ){
     return <div className = 'w-12/12 h-60 md:h-80 lg:h-100 rounded-lg bg-neutral-100 flex animate-pulse items-center justify-center'>
     
     </div>
@@ -112,7 +113,7 @@ const Post = ({postInfo = {}}) => {
 return <div className = 'flex bg-neutral-50 p-1 rounded-lg gap-2 flex-col w-full'>
     <AnimatePresence>
       {
-    isProhibited ? <NAPopUp onClose = {() => setIsProhibited(false)}/> : isPostSettingOpen && <PostSettings postLink = {`/post/${_id}`} postAuthorId = {authorInfo._id} postId = {_id} onClose = {() => setIsPostSettingOpen(false)}/>
+    isProhibited ? <NAPopUp onClose = {() => setIsProhibited(false)}/> : isPostSettingOpen && <PostSettings postLink = {`/post/${_id}`} postAuthorId = {authorInfo?._id} postId = {_id} onClose = {() => setIsPostSettingOpen(false)}/>
   }
   </AnimatePresence>
   {
